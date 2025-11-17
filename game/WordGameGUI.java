@@ -11,8 +11,10 @@ public class WordGameGUI extends JFrame {
     private JButton submitButton, viewScoreButton;
     private JTextArea feedbackArea;
     private JProgressBar timerBar;
+    // --- Data Structures ---
     private List<QuestionData> questions = new ArrayList<>();
     private Map<String, List<Integer>> playerScores = new HashMap<>();
+    // --- Game State Variables ---
     private int currentQuestion, correctCount, totalCount, timeRemaining;
     private String playerName;
     private Timer gameTimer;
@@ -76,6 +78,7 @@ public class WordGameGUI extends JFrame {
         feedbackArea = new JTextArea(3, 30);
         feedbackArea.setFont(new Font("Arial", Font.PLAIN, 14));
         feedbackArea.setEditable(false);
+        feedbackArea.setFocusable(false);
         feedbackArea.setLineWrap(true);
         feedbackArea.setWrapStyleWord(true);
         feedbackArea.setBackground(new Color(255, 250, 205));
@@ -130,11 +133,11 @@ public class WordGameGUI extends JFrame {
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         return btn;
     }
-    
+    // === Ask for player's name and load previous data ===
     private void showNameDialog() {
         playerName = JOptionPane.showInputDialog(this, "Enter your name:", "Player Name", JOptionPane.QUESTION_MESSAGE);
         if (playerName == null || playerName.trim().isEmpty()) playerName = "Player";
-        
+        // If player has old records
         if (playerScores.containsKey(playerName)) {
             viewScoreButton.setVisible(true);
             if (JOptionPane.showConfirmDialog(this, "Welcome back, " + playerName + "!\nView previous scores?", 
@@ -146,7 +149,7 @@ public class WordGameGUI extends JFrame {
         if (!questions.isEmpty()) startGame();
         else JOptionPane.showMessageDialog(this, "Could not load questions from word_answer.txt", "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+    // === Load questions from external file ===
     private void loadQuestions() {
         try (BufferedReader r = new BufferedReader(new FileReader("word_answer.txt"))) {
             String line;
@@ -156,7 +159,7 @@ public class WordGameGUI extends JFrame {
             }
         } catch (IOException e) { e.printStackTrace(); }
     }
-    
+    // === Load saved player scores from file ===
     private void loadScores() {
         File f = new File("result.txt");
         if (!f.exists()) return;
@@ -173,7 +176,7 @@ public class WordGameGUI extends JFrame {
             }
         } catch (IOException e) { e.printStackTrace(); }
     }
-    
+    // === Display score history for current player ===
     private void showPlayerScores() {
         if (!playerScores.containsKey(playerName)) {
             JOptionPane.showMessageDialog(this, "No previous scores found for " + playerName);
@@ -181,39 +184,35 @@ public class WordGameGUI extends JFrame {
         }
         
         List<Integer> scores = playerScores.get(playerName);
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JPanel p = new JPanel(new BorderLayout(10, 10));
+        p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        JLabel t = new JLabel("Score History for " + playerName);
+        JLabel t = new JLabel("Game History for " + playerName, SwingConstants.CENTER);
         t.setFont(new Font("Arial", Font.BOLD, 18));
-        t.setAlignmentX(Component.CENTER_ALIGNMENT);
-        p.add(t);
-        p.add(Box.createVerticalStrut(15));
+        p.add(t, BorderLayout.NORTH);
         
-        JPanel stats = new JPanel(new GridLayout(3, 2, 10, 5));
-        stats.setMaximumSize(new Dimension(400, 100));
-        stats.setBorder(BorderFactory.createTitledBorder("Statistics"));
-        stats.add(new JLabel("Games Played:"));
-        stats.add(new JLabel(String.valueOf(scores.size())));
-        stats.add(new JLabel("Best Score:"));
-        stats.add(new JLabel(Collections.max(scores) + "/" + totalCount));
-        stats.add(new JLabel("Average Score:"));
-        stats.add(new JLabel(String.format("%.1f/%d", scores.stream().mapToInt(Integer::intValue).average().orElse(0), totalCount)));
-        p.add(stats);
+        // Create table for game history
+        String[] columnNames = {"Game #", "Score"};
+        Object[][] data = new Object[scores.size()][3];
         
-        JTextArea hist = new JTextArea(8, 30);
-        hist.setEditable(false);
-        hist.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        StringBuilder sb = new StringBuilder();
-        for (int i = Math.max(0, scores.size() - 10); i < scores.size(); i++)
-            sb.append(String.format("Game %d: %d/%d%n", i + 1, scores.get(i), totalCount));
-        hist.setText(sb.toString());
-        p.add(new JScrollPane(hist));
+        for (int i = 0; i < scores.size(); i++) {
+            data[i][0] = i + 1;
+            data[i][1] = scores.get(i) + "/" + totalCount;
+
+        }
         
-        JOptionPane.showMessageDialog(this, p, "Player Scores", JOptionPane.PLAIN_MESSAGE);
+        JTable table = new JTable(data, columnNames);
+        table.setFont(new Font("Arial", Font.PLAIN, 13));
+        table.setRowHeight(25);
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+        table.setEnabled(false);
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        p.add(scrollPane, BorderLayout.CENTER);
+        
+        JOptionPane.showMessageDialog(this, p, "Player Game History", JOptionPane.PLAIN_MESSAGE);
     }
-    
+    // === Display all players history in tabs ===
     private void showAllPlayersHistory() {
         if (playerScores.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No game history available yet.");
@@ -222,8 +221,7 @@ public class WordGameGUI extends JFrame {
         
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Leaderboard", createLeaderboard());
-        tabs.addTab("All Games", createAllGames());
-        tabs.addTab("Stats", createStats());
+
         
         JDialog d = new JDialog(this, "Game History", true);
         d.setContentPane(tabs);
@@ -231,7 +229,7 @@ public class WordGameGUI extends JFrame {
         d.setLocationRelativeTo(this);
         d.setVisible(true);
     }
-    
+    // === Create leaderboard tab ===
     private JPanel createLeaderboard() {
         JPanel p = new JPanel(new BorderLayout());
         Map<String, Integer> best = new HashMap<>();
@@ -257,54 +255,12 @@ public class WordGameGUI extends JFrame {
         return p;
     }
     
-    private JPanel createAllGames() {
-        JPanel p = new JPanel(new BorderLayout());
-        List<int[]> games = new ArrayList<>();
-        playerScores.forEach((pl, sc) -> {
-            for (int i = 0; i < sc.size(); i++) games.add(new int[]{pl.hashCode(), i + 1, sc.get(i)});
-        });
-        Collections.reverse(games);
-        
-        Object[][] data = new Object[Math.min(50, games.size())][4];
-        for (int i = 0; i < data.length; i++) {
-            final int index = i;
-            String pl = playerScores.keySet().stream().filter(k -> k.hashCode() == games.get(index)[0]).findFirst().orElse("");
-            data[i][0] = pl;
-            data[i][1] = games.get(i)[1];
-            data[i][2] = games.get(i)[2] + "/" + totalCount;
-            data[i][3] = String.format("%.1f%%", (double) games.get(i)[2] / totalCount * 100);
-        }
-        
-        JTable tbl = new JTable(data, new String[]{"Player", "Game #", "Score", "%"});
-        tbl.setEnabled(false);
-        p.add(new JScrollPane(tbl));
-        return p;
-    }
-    
-    private JPanel createStats() {
-        JPanel p = new JPanel(new BorderLayout());
-        StringBuilder sb = new StringBuilder("STATISTICS\n═════════════════════\n\n");
-        sb.append("Players: ").append(playerScores.size()).append("\n");
-        sb.append("Total Games: ").append(playerScores.values().stream().mapToInt(List::size).sum()).append("\n\n");
-        
-        playerScores.forEach((pl, sc) -> {
-            sb.append(String.format("%s: Best=%d Avg=%.1f Games=%d\n", 
-                pl, Collections.max(sc), sc.stream().mapToInt(Integer::intValue).average().orElse(0), sc.size()));
-        });
-        
-        JTextArea txt = new JTextArea(sb.toString());
-        txt.setEditable(false);
-        txt.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        p.add(new JScrollPane(txt));
-        return p;
-    }
-    
     private void startGame() {
         currentQuestion = correctCount = 0;
         totalCount = questions.size();
         displayQuestion();
     }
-    
+    // === Display next question ===
     private void displayQuestion() {
         if (currentQuestion >= questions.size()) { endGame(); return; }
         QuestionData q = questions.get(currentQuestion);
@@ -316,8 +272,10 @@ public class WordGameGUI extends JFrame {
         feedbackArea.setText("");
         scoreLabel.setText("Score: " + correctCount + "/" + totalCount);
         startTimer();
+        feedbackArea.setFocusable(true);          // ให้โฟกัสได้
+        answerField.requestFocusInWindow();
     }
-    
+    // === Start countdown timer ===
     private void startTimer() {
         timeRemaining = 20;
         timerBar.setValue(20);
@@ -335,7 +293,7 @@ public class WordGameGUI extends JFrame {
         });
         gameTimer.start();
     }
-    
+    // === When time runs out ===
     private void timeUp() {
         answerField.setEnabled(false);
         submitButton.setEnabled(false);
@@ -347,14 +305,14 @@ public class WordGameGUI extends JFrame {
         nextTimer.setRepeats(false);
         nextTimer.start();
     }
-    
+    // === Handle answer submission ===
     private void checkAnswer() {
         if (gameTimer != null) gameTimer.stop();
         String ans = answerField.getText().trim();
         QuestionData q = questions.get(currentQuestion);
         answerField.setEnabled(false);
         submitButton.setEnabled(false);
-        
+        // Check correctness
         if (ans.equalsIgnoreCase(q.answer)) {
             correctCount++;
             feedbackArea.setText("Correct! (" + (20 - timeRemaining) + "s)");
@@ -363,7 +321,7 @@ public class WordGameGUI extends JFrame {
             feedbackArea.setText("Wrong!\nYour: " + ans + "\nCorrect: " + q.answer);
             feedbackArea.setBackground(new Color(255, 182, 193));
         }
-        
+        // Move to next question after delay
         scoreLabel.setText("Score: " + correctCount + "/" + totalCount);
         Timer nextTimer = new Timer(2500, e -> { 
             feedbackArea.setBackground(new Color(255, 250, 205)); 
@@ -373,7 +331,7 @@ public class WordGameGUI extends JFrame {
         nextTimer.setRepeats(false);
         nextTimer.start();
     }
-    
+    // === Endgame summary screen ===
     private void endGame() {
         if (gameTimer != null) gameTimer.stop();
         saveResults();
@@ -389,7 +347,7 @@ public class WordGameGUI extends JFrame {
             showNameDialog();
         } else System.exit(0);
     }
-    
+    // === Save results to file ===
     private void saveResults() {
         try (PrintWriter w = new PrintWriter(new FileWriter("result.txt", true))) {
             w.println(playerName + " " + correctCount);
@@ -397,12 +355,12 @@ public class WordGameGUI extends JFrame {
         playerScores.putIfAbsent(playerName, new ArrayList<>());
         playerScores.get(playerName).add(correctCount);
     }
-    
+    // === Data Class for Questions ===
     class QuestionData {
         String question, hint, answer;
         QuestionData(String q, String h, String a) { question = q; hint = h; answer = a; }
     }
-    
+    // === Main Method ===
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) {}
