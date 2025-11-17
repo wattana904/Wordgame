@@ -1,0 +1,20 @@
+K__WLEDGE|What you gain when you learn something.|KNOWLEDGE
+A__IEVEMENT|Something you get after hard work and success.|ACHIEVEMENT
+D__ISION|You make this when you have to choose.|DECISION
+_MEM0RY|What your brain keeps from the past.|MEMORY
+_EMOTION|A feeling like happiness, anger, or fear.|EMOTION
+C__RAGE|What you need to face your fears.|COURAGE
+I__VENTION|Something new created by someone.|INVENTION
+_BELIEVABLE|Something you can trust or think is true.|BELIEVABLE
+_PACEFUL|The opposite of violent or noisy.|PEACEFUL
+_EXPERIENCE|You gain this after doing something many times.|EXPERIENCE
+_PLEASURE|Something you enjoy that makes you happy.|PLEASURE
+_CREATIVITY|The ability to think of new and original ideas.|CREATIVITY
+_ADVENTURE|A fun or risky journey.|ADVENTURE
+_REALISTIC|Something that can happen in real life.|REALISTIC
+_DEPENDABLE|A person or thing you can trust.|DEPENDABLE
+_MEASUREMENT|A number that shows how big or long something is.|MEASUREMENT
+_GRAVITY|The force that pulls everything toward Earth.|GRAVITY
+_IMPRISON|To put someone in jail.|IMPRISON
+_COLLABORATE|To work together to achieve a goal.|COLLABORATE
+_DESPERATION|A feeling when you have no hope left.|DESPERATION
