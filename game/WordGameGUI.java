@@ -106,12 +106,18 @@ public class WordGameGUI extends JFrame {
         bottomPanel.setBackground(Color.WHITE);
         viewScoreButton = createButton("View My Scores", new Color(100, 149, 237));
         viewScoreButton.setVisible(false);
-        viewScoreButton.addActionListener(e -> showPlayerScores());
+        viewScoreButton.addActionListener(e -> {
+         if (gameTimer != null) gameTimer.stop();
+         showPlayerScores();
+        });
         JButton historyButton = createButton("All Players History", new Color(255, 140, 0));
-        historyButton.addActionListener(e -> showAllPlayersHistory());
+        historyButton.addActionListener(e -> {
+         if (gameTimer != null)gameTimer.stop();
+         showAllPlayersHistory();
+        });
         bottomPanel.add(viewScoreButton);
         bottomPanel.add(historyButton);
-        
+
         add(topPanel, BorderLayout.NORTH);
         add(centerPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
@@ -211,6 +217,8 @@ public class WordGameGUI extends JFrame {
         p.add(scrollPane, BorderLayout.CENTER);
         
         JOptionPane.showMessageDialog(this, p, "Player Game History", JOptionPane.PLAIN_MESSAGE);
+
+        if (gameTimer != null) gameTimer.start();
     }
     // === Display all players history in tabs ===
     private void showAllPlayersHistory() {
@@ -228,6 +236,8 @@ public class WordGameGUI extends JFrame {
         d.setSize(600, 500);
         d.setLocationRelativeTo(this);
         d.setVisible(true);
+
+        if (gameTimer != null) gameTimer.start();
     }
     // === Create leaderboard tab ===
     private JPanel createLeaderboard() {
@@ -272,7 +282,7 @@ public class WordGameGUI extends JFrame {
         feedbackArea.setText("");
         scoreLabel.setText("Score: " + correctCount + "/" + totalCount);
         startTimer();
-        feedbackArea.setFocusable(true);          // ให้โฟกัสได้
+        feedbackArea.setFocusable(true);        
         answerField.requestFocusInWindow();
     }
     // === Start countdown timer ===
