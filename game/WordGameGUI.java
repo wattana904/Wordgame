@@ -203,7 +203,7 @@ public class WordGameGUI extends JFrame {
         
         for (int i = 0; i < scores.size(); i++) {
             data[i][0] = i + 1;
-            data[i][1] = scores.get(i) + "/" + totalCount;
+            data[i][1] = scores.get(i) + "/" + "10";
 
         }
         
